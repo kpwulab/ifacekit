@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use ifacekit in your work, we suggest citing it as below (preprint reference to be added)."
+title: "ifacekit: interface, contact and clash analysis for PDB and mmCIF models"
+version: 0.8.0
+license: MIT
+authors:
+  - family-names: "Wu"
+    given-names: "Kuen-Phon"
+    affiliation: "Institute of Biological Chemistry, Academia Sinica"
+# preferred-citation:   (add when the bioRxiv preprint is posted)
+#   type: article
+#   journal: "bioRxiv"
+#   doi: "10.1101/..."

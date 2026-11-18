@@ -1,0 +1,28 @@
+# systemd unit for the ifacekit portal. Copy to /etc/systemd/system/ifacekit.service, replace /your_path by the folder you installed
+# into (and adjust the user), then
+#   sudo systemctl daemon-reload && sudo systemctl enable --now ifacekit
+[Unit]
+Description=ifacekit portal
+After=network.target
+
+[Service]
+User=ifacekit
+Group=ifacekit
+WorkingDirectory=/your_path/ifacekit
+Environment=IFACEKIT_DATA=/var/lib/ifacekit/jobs
+Environment=IFACEKIT_KEEP_DAYS=7
+Environment=IFACEKIT_MAX_JOBS=4
+Environment=IFACEKIT_MEM_MB=8192
+ExecStart=/your_path/ifacekit/server/ifacekit-server.sh --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+# the portal as a whole may not take more than this (analyses are child processes of the service)
+MemoryMax=32G
+TasksMax=512
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/var/lib/ifacekit
+
+[Install]
+WantedBy=multi-user.target

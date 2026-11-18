@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ifacekit</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d2326;--mut:#667078;--card:#fff;--line:#dde1e3;--acc:#2b6cb0;--good:#2f855a;--warn:#b7791f;--bad:#c0392b;--chip:#eef1f3;--t1:#eef4fb;--t2:#eef7f1}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#14181a;--fg:#e6e9ea;--mut:#98a2a8;--card:#1c2124;--line:#2e3539;--acc:#63a4e8;--good:#5cc08a;--warn:#e3b04b;--bad:#ef6f61;--chip:#262d31;--t1:#182430;--t2:#18281f}}
+:root[data-theme=dark]{--bg:#14181a;--fg:#e6e9ea;--mut:#98a2a8;--card:#1c2124;--line:#2e3539;--acc:#63a4e8;--good:#5cc08a;--warn:#e3b04b;--bad:#ef6f61;--chip:#262d31;--t1:#182430;--t2:#18281f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:980px;margin:0 auto;padding:0 16px 48px}
+header{position:relative;padding:10px 0 6px}header h1{margin:0}
+header .banner{display:block;width:100%;height:auto;aspect-ratio:2000/667;border-radius:10px}header button.theme{position:absolute;top:18px;right:8px}
+.lead{color:var(--mut);margin:0 0 22px;max-width:70ch}
+button.theme{font-size:12px;padding:4px 10px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px;cursor:pointer}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:760px){.choice{grid-template-columns:1fr}}
+.opt{border:1px solid var(--line);border-left-width:6px;border-radius:12px;padding:14px 18px 16px;background:var(--card);cursor:pointer;text-align:left;color:inherit;font:inherit}
+.opt h2{margin:0 0 4px;font-size:17px}.opt p{margin:0;color:var(--mut);font-size:14px}
+.opt.p{border-left-color:#2b6cb0}.opt.e{border-left-color:#2f855a}.opt.l{border-left-color:#b7791f}.opt.q{border-left-color:#805ad5}
+.opt[aria-pressed=true]{outline:2px solid var(--acc);background:var(--t1)}.opt.e[aria-pressed=true]{background:var(--t2)}.opt.l[aria-pressed=true],.opt.q[aria-pressed=true]{background:var(--chip)}
+form{margin-top:18px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:6px 18px 18px}
+fieldset{border:none;margin:14px 0 0;padding:0}legend{font-weight:600;font-size:14px;padding:0;margin-bottom:6px}
+.drop{display:block;border:2px dashed var(--line);border-radius:10px;padding:18px;text-align:center;color:var(--mut);cursor:pointer}
+.drop.over{border-color:var(--acc);background:var(--chip)}.drop input{display:none}.drop b{color:var(--fg)}
+.files{margin:8px 0 0;padding:0;list-style:none;font-size:13px;color:var(--mut)}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:end}.row label{font-size:13px;color:var(--mut);display:block}
+input[type=text],select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);min-width:90px}
+.hint{font-size:13px;color:var(--mut);margin:6px 0 0}.chk{display:flex;gap:8px;align-items:flex-start;margin-top:8px}.chk input{margin-top:4px}
+.go{margin-top:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.go button{font:inherit;font-weight:600;padding:9px 22px;border:none;border-radius:8px;background:var(--acc);color:#fff;cursor:pointer}.go button:disabled{opacity:.5;cursor:not-allowed}
+#status{font-size:14px}#status.err{color:var(--bad)}#result a{margin-right:14px;color:var(--acc)}
+.see{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px}@media(max-width:760px){.see{grid-template-columns:1fr}}
+.see div{border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13.5px;color:var(--mut);background:var(--card)}.see b{color:var(--fg)}
+footer{margin-top:28px;font-size:12.5px;color:var(--mut)}
+[hidden]{display:none!important}
+</style></head><body><main>
+<header><h1><img class="banner" src="/static/banner-1000.webp" srcset="/static/banner-1000.webp 1000w, /static/banner.webp 2000w" sizes="(min-width:980px) 948px, 100vw" width="2000" height="667" alt="iFaceKit"></h1>
+<button class="theme" type="button" onclick="var r=document.documentElement;r.dataset.theme=(r.dataset.theme==='dark'?'light':'dark')">light / dark</button></header>
+<div class="ifk-version" style="display:inline-block;margin:0 0 10px;padding:1px 9px;border:1px solid currentColor;border-radius:6px;font:12px/1.6 sans-serif;opacity:.7">version __VERSION__</div>
+<p class="lead">Interactions, clashes and model quality for PDB and mmCIF models. Heavy-atom analysis, no licence needed. Choose what you are checking, then upload the files.</p>
+
+<div class="choice" role="group" aria-label="Type of analysis">
+  <button type="button" class="opt p" data-t="predicted" aria-pressed="true"><h2>1. AI-predicted complex</h2>
+    <p>AlphaFold 3 model of two or more chains. AI confidence (ipTM, ipSAE, PAE, pLDDT), interface interactions, prediction quality.</p></button>
+  <button type="button" class="opt e" data-t="interface" aria-pressed="false"><h2>2. Experimental interface</h2>
+    <p>Crystal, cryo-EM or NMR model. Interactions between two chains, clashes, waters, geometry, B-factors.</p></button>
+  <button type="button" class="opt l" data-t="ligand" aria-pressed="false"><h2>3. Ligand binding site</h2>
+    <p>One ligand in an experimental or predicted model: interaction map, contact tables, contact quality, waters.</p></button>
+  <button type="button" class="opt q" data-t="quality" aria-pressed="false"><h2>4. Chain quality</h2>
+    <p>Model quality of single chains or the whole file: clashes, geometry, waters and metal sites. Text report.</p></button>
+</div>
+
+<form id="f" autocomplete="off">
+  <fieldset><legend>Structure file</legend>
+    <label class="drop" id="drop"><input type="file" id="file" accept=".cif,.mmcif,.pdb,.ent">
+      <span><b>Drop a .cif or .pdb file here</b> or click to choose</span></label>
+    <div class="row" id="fw" style="margin-top:12px">
+      <div><label for="pid">or fetch from the PDB</label><input type="text" id="pid" placeholder="PDB ID, e.g. 8AFB" size="16" maxlength="4"></div>
+      <div><label for="src">Source</label><select id="src"><option value="rcsb">RCSB PDB</option><option value="pdbe">PDBe</option><option value="pdbj">PDBj</option><option value="auto">any (try in turn)</option></select></div>
+      <div><button type="button" id="fetch" class="theme" style="padding:7px 14px" disabled>Fetch</button></div>
+    </div>
+    <p class="hint">One file, plain text only. Archives (zip, gz) are not accepted. Only the first model is analysed.</p>
+  </fieldset>
+  <fieldset id="aiw"><legend>AlphaFold JSON files (optional, recommended)</legend>
+    <div class="row">
+      <div><label for="fs">summary_confidences .json</label><input type="file" id="fs" accept=".json"></div>
+      <div><label for="ff">full_data .json</label><input type="file" id="ff" accept=".json"></div>
+    </div>
+    <p class="hint">Use the files of the same model as the .cif. Without them the report has no AI metrics or PAE plot.</p>
+  </fieldset>
+  <div class="go"><button type="button" id="up" disabled>Upload and read file</button><span id="ust"></span></div>
+
+  <div id="step2" hidden>
+    <p class="hint" id="sum"></p>
+    <fieldset id="pw"><legend>Chains to analyse</legend>
+      <div class="row">
+        <div><label for="ca">Chain A</label><select id="ca"></select></div>
+        <div><label for="cb">Chain B</label><select id="cb"></select></div>
+      </div>
+      <p class="hint">"auto" uses the pair with the largest interface.</p></fieldset>
+    <fieldset id="lw"><legend>Ligand</legend>
+      <div class="row"><div><label for="lg">Ligand</label><select id="lg"></select></div></div>
+      <div class="chk"><input type="checkbox" id="dt"><label for="dt"><b>Also draw the detailed diagram.</b> Residues that hydrogen-bond or salt-bridge the ligand are drawn as chemical structures (a third view in the report; a little slower).</label></div>
+      <div class="chk" style="margin-left:22px"><input type="checkbox" id="da" disabled><label for="da">Draw hydrophobic and van der Waals residues as structures too (more crowded).</label></div>
+      <p class="hint">Single ions such as MG are listed too. Model type (prediction or experiment) is detected from the file.</p></fieldset>
+    <fieldset id="qw"><legend>Chains</legend>
+      <div class="row"><div><label for="qc">Chains</label><select id="qc" multiple size="4"></select></div></div>
+      <p class="hint">Nothing selected means every chain.</p></fieldset>
+    <fieldset id="mw"><legend>Output</legend>
+      <div class="chk"><input type="checkbox" id="ms" checked><label for="ms"><b>Also make the 3D page (Mol*).</b> Click a row in a table to see it in 3D. The plain report is always made.</label></div></fieldset>
+    <fieldset id="hw"><legend>Clash check</legend>
+      <div class="chk"><input type="checkbox" id="hy"><label for="hy"><b>Also check clashes with hydrogens added.</b> ifacekit places hydrogens on the protein and lists the all-atom clashes (a few seconds more; interface and chain reports). Only this check uses the hydrogens; everything else uses the file as given.</label></div></fieldset>
+    <fieldset id="ew" hidden><legend>NMR ensemble</legend>
+      <div class="chk"><input type="checkbox" id="en"><label for="en"><b>Analyse every model of the file</b> (<span id="nm">0</span> models). One page with a summary of the ensemble (table of all models, mean and standard deviation, RMSD of every residue) and the full report of each model, plus tables as CSV. Unchecked: only the first model is analysed. The 3D page (Mol*) follows the model chosen on the page, and shows all models together.</label></div></fieldset>
+    <div class="go"><button type="submit" id="run">Analyse</button><span id="status"></span></div>
+  </div>
+  <div id="result" style="margin-top:10px"></div>
+</form>
+
+<div class="see">
+  <div><b>Predicted complex.</b> AI confidence metrics; interface interactions, with clashes listed separately; quality of the prediction (pLDDT, clashes, backbone geometry).</div>
+  <div><b>Experimental interface.</b> Interface interactions; model quality with B-factors, waters, clashes and backbone geometry.</div>
+  <div><b>Ligand.</b> Interaction map, contacts by residue and water, hydrogen-bond and clash verdicts for one ligand.</div>
+  <div><b>Chain quality.</b> One block per chain, plus a comparison table when several chains are chosen.</div>
+</div>
+<footer><b>ifacekit __VERSION__</b> &middot; MIT licence &middot; &copy; 2026 Kuen-Phon Wu, Institute of Biological Chemistry, Academia Sinica.<br><b>Citation.</b> If ifacekit is useful in your work, we suggest citing: [authors, title, bioRxiv preprint, DOI: to be added]. __COMPARISON_SHORT__ Uploaded files stay on this server and are deleted after 7 days. Files are only read as text, never executed.</footer>
+</main>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)},type='predicted',job=null;
+var HINT={predicted:1,interface:1};
+function esc(t){return String(t).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]})}
+function opts(el,list,first){el.innerHTML=(first?'<option value="">'+first+'</option>':'')+list.map(function(v){return '<option value="'+esc(v[0])+'">'+esc(v[1])+'</option>'}).join('')}
+function setType(t){type=t;[].forEach.call(document.querySelectorAll('.opt'),function(b){b.setAttribute('aria-pressed',b.dataset.t===t)});
+ $('aiw').hidden=t!=='predicted';$('fw').hidden=t==='predicted';reset();show()}
+var NM=1;
+function show(){$('step2').hidden=!job;$('pw').hidden=!HINT[type];$('lw').hidden=type!=='ligand';$('qw').hidden=type!=='quality';$('mw').hidden=type==='quality';$('hw').hidden=type==='ligand';$('ew').hidden=!(NM>1&&(type==='quality'||type==='interface'));$('result').innerHTML='';$('status').textContent=''}
+function reset(){job=null;$('pid').value='';pchk();$('file').value='';$('fs').value='';$('ff').value='';$('up').disabled=true;$('ust').textContent='';$('ust').className='';show()}
+[].forEach.call(document.querySelectorAll('.opt'),function(b){b.onclick=function(){setType(b.dataset.t)}});
+function chk(){var f=$('file').files[0];$('up').disabled=!(f&&/\.(cif|mmcif|pdb|ent)$/i.test(f.name));job=null;show()}
+$('file').onchange=chk;$('fs').onchange=$('ff').onchange=function(){job=null;show()};
+var d=$('drop');['dragenter','dragover'].forEach(function(e){d.addEventListener(e,function(ev){ev.preventDefault();d.classList.add('over')})});
+['dragleave','drop'].forEach(function(e){d.addEventListener(e,function(ev){ev.preventDefault();d.classList.remove('over')})});
+d.addEventListener('drop',function(ev){$('file').files=ev.dataTransfer.files;chk()});
+function msg(el,t,err){el.className=err?'err':'';el.textContent=t}
+function accepted(j,label){job=j.job;NM=j.n_models||1;$('nm').textContent=NM;$('en').checked=false;msg($('ust'),'File accepted: '+label);
+  var ch=j.chains.map(function(c){return [c.chain,c.chain+' ('+c.type+', '+c.residues+' res)']});
+  opts($('ca'),ch,'auto');opts($('cb'),ch,'auto');opts($('qc'),ch);
+  opts($('lg'),j.ligands.map(function(l){return [l.id,l.name+' ('+l.id+', '+l.atoms+' atoms)']}));
+  var warn=[];if(type==='ligand'&&!j.ligands.length)warn.push('No ligands in this file.');
+  if(HINT[type]&&j.chains.length<2)warn.push('Only one chain: there is no interface. Choose ligand or chain quality.');
+  if(type==='predicted'&&!j.has_ai_files)warn.push('AI metrics need both JSON files.');
+  if(type==='predicted'&&!j.predicted)warn.push('This file does not look like a prediction.');
+  $('sum').textContent=j.chains.length+' chain(s), '+j.ligands.length+' ligand unit(s). Detected as '+(j.predicted?'a predicted':'an experimental')+' model. '+warn.join(' ');
+  show()}
+function post(url,fd,btn,wait){btn.disabled=true;msg($('ust'),wait);
+ return fetch(url,{method:'POST',body:fd}).then(function(r){return r.json()}).then(function(j){if(j.error)throw new Error(j.error);return j})
+ .catch(function(e){msg($('ust'),e.message,1);return null}).finally(function(){btn.disabled=false;pchk()})}
+$('up').onclick=function(){var fd=new FormData();fd.append('structure',$('file').files[0]);
+ if(type==='predicted'){if($('fs').files[0])fd.append('summary',$('fs').files[0]);if($('ff').files[0])fd.append('full',$('ff').files[0])}
+ post('/api/inspect',fd,$('up'),'Uploading and reading ...').then(function(j){if(j)accepted(j,$('file').files[0].name)})};
+function pchk(){$('fetch').disabled=!/^[0-9][A-Za-z0-9]{3}$/.test($('pid').value.trim())}
+$('dt').onchange=function(){$('da').disabled=!this.checked;if(!this.checked)$('da').checked=false};
+$('pid').oninput=pchk;$('pid').onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();if(!$('fetch').disabled)$('fetch').click()}};
+$('fetch').onclick=function(){var fd=new FormData();fd.append('pdb_id',$('pid').value.trim());fd.append('source',$('src').value);
+ job=null;show();post('/api/fetch',fd,$('fetch'),'Downloading ...').then(function(j){if(j){$('file').value='';$('up').disabled=true;accepted(j,j.pdb_id+' from '+j.source)}})};
+$('f').onsubmit=function(ev){ev.preventDefault();if(!job)return;var fd=new FormData();fd.append('job',job);fd.append('type',type);
+ fd.append('chain_a',$('ca').value);fd.append('chain_b',$('cb').value);fd.append('ligand',$('lg').value);
+ fd.append('chains',[].filter.call($('qc').options,function(o){return o.selected}).map(function(o){return o.value}).join(','));fd.append('molstar',$('ms').checked?'1':'0');fd.append('hydrogens',$('hy').checked?'1':'0');fd.append('ensemble',(!$('ew').hidden&&$('en').checked)?'1':'0');fd.append('detailed',$('dt').checked?'1':'0');fd.append('detailed_all',$('da').checked?'1':'0');
+ $('run').disabled=true;msg($('status'),'Analysing, this takes a few seconds to a minute ...');$('result').innerHTML='';
+ fetch('/api/analyze',{method:'POST',body:fd}).then(function(r){return r.json()}).then(function(j){
+  if(j.error)throw new Error(j.error);msg($('status'),'Done.');
+  $('result').innerHTML=(j.report?'<a href="'+j.report+'" target="_blank" rel="noopener">Open report</a>':'')+(j.report_3d?'<a href="'+j.report_3d+'" target="_blank" rel="noopener">Open 3D report</a>':'')+
+   (j.files||[]).map(function(f){return '<a href="'+f.url+'" target="_blank" rel="noopener">'+esc(f.label)+'</a>'}).join('')+
+   (j.warnings&&j.warnings.length?'<div class="hint">'+j.warnings.map(esc).join('<br>')+'</div>':'')})
+ .catch(function(e){msg($('status'),'Could not analyse: '+e.message,1)}).finally(function(){$('run').disabled=false})};
+setType('predicted');
+})();
+</script></body></html>

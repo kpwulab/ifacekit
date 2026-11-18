@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ifacekit"
+version = "0.8.0"
+description = "Interface, contact and clash analysis for PDB/mmCIF models (protein, nucleic acid, ligand, water). No lattice or symmetry handling."
+requires-python = ">=3.9"
+dependencies = [
+    "gemmi>=0.6.5",
+    "numpy",
+    "scipy",
+]
+license = {text = "MIT"}
+
+[project.optional-dependencies]
+test = ["pytest", "freesasa", "rdkit", "cairosvg"]
+server = ["flask", "gunicorn"]    # the web portal (server/)
+pdf = ["cairosvg", "pypdf"]       # one PDF with all Ramachandran and rotamer plots (also needs the system library libcairo)
+ligand = ["rdkit", "cairosvg"]   # needed only for the ligand interaction diagram and report
+
+[project.scripts]
+ifacekit = "ifacekit.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ifacekit*"]
+
+[tool.setuptools.package-data]
+ifacekit = ["data/*.npz", "data/*.webp", "data/*.html"]

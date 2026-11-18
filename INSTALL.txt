@@ -1,0 +1,124 @@
+ifacekit - installation guide
+===================================
+
+ifacekit analyses one PDB or mmCIF model at a time (interfaces, contacts, clashes, model quality).
+It runs on Linux and macOS, and on Windows (written for Windows 10/11, not yet tested there), from the command line and as a small web portal.
+To start it without typing commands, use the double-click files in launchers/ (see launchers/README.txt).
+Nothing needs a licence key. Phenix, CCP4, PISA and MolProbity are NOT needed.
+
+
+1. What you need
+----------------
+  Always:             Python 3.9 or newer
+                      (installed automatically by pip: gemmi 0.6.5+, numpy, scipy)
+  Ligand report:      rdkit                                   pip install ".[ligand]"
+  PNG / PDF figures:  cairosvg AND the system library libcairo
+                      (pip cannot install libcairo, see step 3)
+  One PDF of all
+  Ramachandran and
+  rotamer plots:      cairosvg + libcairo + pypdf             pip install ".[pdf]"
+  Web portal:         flask, gunicorn                         pip install ".[server]"
+  Tests:              pytest, freesasa (plus rdkit, cairosvg) pip install pytest freesasa
+  3D page (--molstar): a browser. Made on the command line the page loads Mol* from the internet (jsDelivr);
+                      the web portal serves its own copy, so it works offline.
+
+  Check your Python first:   python3 --version      (must say 3.9 or higher)
+
+
+2. Install (Linux and macOS)
+----------------------------
+Unpack the archive and make a private Python environment inside the folder:
+
+  tar xzf ifacekit.tgz
+  cd ifacekit
+  python3 -m venv .venv
+  . .venv/bin/activate              (tcsh/csh: source .venv/bin/activate.csh)
+  pip install --upgrade pip
+  pip install .                     (the core: command line and reports)
+
+Add what you need. Most people want the first line; the rest are optional:
+
+  pip install ".[ligand,pdf,server]"     (rdkit, cairosvg, pypdf, flask, gunicorn in one go)
+
+Each time you open a new terminal, activate the environment again (the "." line above) before using ifacekit.
+The command is then simply "ifacekit". Without activating, use  .venv/bin/ifacekit.
+
+
+3. The system library libcairo (only for PNG and PDF files)
+-----------------------------------------------------------
+pip install cairosvg succeeds without it, but then ifacekit writes SVG only and prints a warning
+(the message says "cairosvg is not installed", but the missing part is libcairo). The ligand maps, the plots PDF
+and two tests need it.
+
+  macOS (Homebrew):        brew install cairo
+  Debian / Ubuntu:         sudo apt install libcairo2
+  Fedora / RHEL:           sudo dnf install cairo
+
+On a Mac with Apple Silicon, if Python still cannot find it after brew install cairo, start the program with
+  DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib ifacekit ...
+Check:  python -c "import cairosvg; print('ok')"     (it must print ok, not an OSError)
+
+
+4. Check that it works
+----------------------
+  ifacekit --version                                    (prints the installed version)
+  curl -O https://files.rcsb.org/download/4QZS.cif      (a public BRD4 / JQ1 model from the PDB)
+  ifacekit 4QZS.cif                                     (lists the chains)
+  python -m pytest -q tests                             (downloads a few public PDB entries the first time, about 6 MB)
+
+The tests need pytest and freesasa (and rdkit, cairosvg with libcairo). Without libcairo two tests fail with
+"OSError: no library called cairo"; this is the missing library of step 3, not a fault of ifacekit.
+The test run takes about two minutes.
+
+
+5. The web portal
+-----------------
+  pip install ".[server]"
+  server/ifacekit-server.sh --host 127.0.0.1 --port 8000
+  then open http://127.0.0.1:8000 in a browser.
+
+  Check the service:    curl localhost:8000/healthz       (shows status ok, version, free disk space)
+  Stop it:              Ctrl-C in the terminal where it runs.
+  Files of the users:   the folder jobs/ (or the folder set by --data or IFACEKIT_DATA), deleted after 7 days.
+
+The portal has no log-in. It listens on 127.0.0.1, which only this computer can reach. Use --host 0.0.0.0 only on a
+trusted internal network. It needs outgoing HTTPS to files.rcsb.org, www.ebi.ac.uk and pdbj.org for "fetch by PDB ID".
+
+To run it permanently on a Linux server (systemd, nginx, settings, memory limits) see
+server/deploy/README_DEPLOY.txt.
+
+
+6. Update to a new version
+--------------------------
+Stop the portal, unpack the new archive over the old folder (keep .venv and jobs), then
+  . .venv/bin/activate
+  pip install -U ".[ligand,pdf,server]"
+and start the portal again.
+
+
+7. Problems and their cause
+---------------------------
+  "ifacekit: command not found"          the environment is not active: run  . .venv/bin/activate
+  "No module named flask"                pip install ".[server]"
+  "No module named rdkit" (--ligand)     pip install ".[ligand]"
+  PNG and PDF files are not written      libcairo is missing, step 3
+  "OSError: no library called cairo"     same
+  "Address already in use" (portal)      another program uses the port: use --port 8001
+  "No module named ifacekit"             the environment is not active, or ifacekit was not installed in it: pip install .
+  The 3D page is empty offline           a page made on the command line loads Mol* from the internet; make it
+                                         through the portal, or give --molstar-url (see ifacekit --help)
+
+
+8. What is in the archive
+-------------------------
+  ifacekit/   the program            tests/      the test suite
+              (no structure files: the tests download public PDB entries when they need them)
+  tools/      scripts that compare with PISA and MolProbity (development only)
+  server/     the web portal (app.py, index.html, static/ with Mol* and the banner, deploy/ for systemd and nginx)
+  docs/       design document and plan for the interaction maps
+  data/       EMPTY. Put your own models here if you like.
+  results/    EMPTY. Reports written by ifacekit can go here.
+The MolProbity output folders and the PISA xml files that the comparison scripts in tools/ read are not included,
+because running ifacekit does not need them.
+
+ifacekit is released under the MIT licence (see LICENSE). Citation is suggested, see CITATION.cff.
